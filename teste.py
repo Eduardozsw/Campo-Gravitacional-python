@@ -5,7 +5,7 @@ import numpy as np
 pygame.init()
 
 # Define as dimensões da janela
-WIDTH, HEIGHT = 800, 600
+WIDTH, HEIGHT = 1366, 768
 screen = pygame.display.set_mode((WIDTH, HEIGHT))
 pygame.display.set_caption('Simulação Gravitacional')
 
@@ -14,10 +14,12 @@ WHITE = (255, 255, 255)
 BLUE = (0, 0, 255)
 RED = (255, 0, 0)
 GREEN = (0, 255, 0)
+GRAY = (200, 200, 200)
 
 # Constantes físicas
-G = 6.67430e-11  # Constante gravitacional
-FPS = 240
+G = 6.67430e-5  # Constante gravitacional ajustada para visualização
+FPS = 60
+dt = 1 / FPS  # Incremento de tempo
 
 # Classe para as esferas
 class Sphere:
@@ -29,8 +31,13 @@ class Sphere:
         self.color = color
         self.vx = 0
         self.vy = 0
+        self.trail = []  # Armazena o rastro da esfera
 
     def draw(self, screen):
+        # Desenha o rastro
+        for point in self.trail:
+            pygame.draw.circle(screen, GRAY, (int(point[0]), int(point[1])), 2)
+        # Desenha a esfera
         pygame.draw.circle(screen, self.color, (int(self.x), int(self.y)), self.radius)
 
     def apply_gravity(self, spheres):
@@ -47,18 +54,23 @@ class Sphere:
                     ay += force * (dy / dist)
         
         # Atualiza a velocidade
-        self.vx += ax
-        self.vy += ay
+        self.vx += ax * dt
+        self.vy += ay * dt
 
     def update_position(self):
         # Atualiza a posição com base na velocidade
-        self.x += self.vx
-        self.y += self.vy
+        self.x += self.vx * dt
+        self.y += self.vy * dt
+
+        # Atualiza o rastro
+        self.trail.append((self.x, self.y))
+        if len(self.trail) > 50:  # Limita o tamanho do rastro
+            self.trail.pop(0)
 
 # Esferas iniciais
 sphere1 = Sphere(WIDTH // 4, HEIGHT // 2, 5e5, 20, BLUE)
 sphere2 = Sphere(3 * WIDTH // 4, HEIGHT // 2, 5e5, 20, RED)
-sphere3 = Sphere(WIDTH // 2, HEIGHT // 4, 5e5, 20, GREEN)
+sphere3 = Sphere(WIDTH // 4, HEIGHT // 4, 5e5, 20, GREEN)
 
 spheres = [sphere1, sphere2, sphere3]
 
@@ -91,3 +103,4 @@ while running:
 
 # Encerra o pygame
 pygame.quit()
+
